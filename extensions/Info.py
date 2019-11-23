@@ -15,9 +15,10 @@ class Info(commands.Cog):
     @commands.command(name="guildinfo", aliases=['gi', 'serverinfo'])
     async def guildinfo(self, ctx: Context) -> None:
         """Returns info about a guild"""
+        
         created = ctx.guild.created_at
         features = ", ".join(ctx.guild.features)
-        region = ctx.guild.region
+        
         id = ctx.guild.id
         owner = ctx.guild.owner
         
@@ -28,6 +29,31 @@ class Info(commands.Cog):
         rolelist = ctx.guild.roles
         cats = ctx.guild.categories
         chans = ctx.guild.text_channels
+        
+        #Dictionary of flags
+        regionFlag = {
+            "amsterdam": ":flag_nl: - Amsterdam",
+            "brazil": ":flag_br: -  Brazil",
+            "eu-central": ":flag_eu: - Central Europe",
+            "eu-west": ":flag_eu: - West Europe",
+            "europe": ":flag_eu: - Europe",
+            "frankfurt": ":flag_de: - Frankfurt",
+            "hongkong": ":flag_ch: - Hong Kong",
+            "india": ":flag_in: - India",
+            "japan": ":flag_jap: - Japan",
+            "london": ":flag_uk: - London",
+            "russia": ":flag_ru: - Russia",
+            "singapore": ":flag_au: - Singapore",
+            "southafrica": ":flag_za: - South Africa",
+            "sydney": ":flag_au: - Sydney",
+            "us_central": ":flag_us: - US Central",
+            "us_east": ":flag_us: - US East",
+            "us_south": ":flag_us: - US South",
+            "us_west": ":flag_us: - US West"
+        }
+        
+        region = ctx.guild.region
+        
         
         # How many of each type of channel?
         roles = len(ctx.guild.roles)
@@ -90,43 +116,32 @@ class Info(commands.Cog):
             if str(member.desktop_status) == "idle":
                 desktopidle += 1
 
-        embed = Embed(
-            colour=Colour.blurple(),
-            description=f"""
-                **Server (Guild) information**
-                ID: {id}
-                Created: {created}
-                Owner: {owner}
-                Voice region: {region}
-                Features: {features}
-                Nitro Tier: {boostlvl}
-                Nitro Boosters: {boostlen}
-                **Server Stats**
-                Categorys: {cats}
-                Channels: {chans}
-                Roles: {rolelist}
-                **Counts**
-                Members: {member_count:,}
-                Roles: {roles}
-                Text: {text_channels}
-                Voice: {voice_channels}
-                Channel categories: {category_channels}
-                **Members**
-                online: {online}
-                idle: {idle}
-                dnd: {dnd}
-                offline: {offline}
-                **Client Type**
-                Desktop: {desktop} online, {desktopidle} idle, {desktopdnd} busy
-                Web: {web} online, {webidle} idle, {webdnd} busy
-                Mobile: {mobile} online, {mobileidle} idle, {mobilednd} busy
-            """
-        )
-
+        embed = discord.Embed(title="Server (Guild) information", colour=Colour.blurple())
+        embed.add_field(name="ID", value=id)
+        embed.add_field(name="Guild Created On", value=created.strftime("%A %d %B %Y %H:%M"))
+        embed.add_field(name="Owner", value=owner)
+        embed.add_field(name="Voice Region", value=" ".join([regionFlag[n] for n in region]))
+        embed.add_field(name="Nitro Level", value=str(boostlvl) + "/" + str(3))
+        embed.add_field(name="Number of Members currently boosting", value=str(boostlen) + "/" + str(member_count))
+        embed.add_field(name="# of Members", value=member_count)
+        embed.add_field(name="... of which human", value=len([member for member in ctx.guild.members if not member.bot]))
+        embed.add_field(name="... of which bots", value=len([member for member in ctx.guild.members if member.bot]))
+        embed.add_field(name="# of Banned Members", value=len(await ctx.guild.bans()))
+        embed.add_field(name="# of Roles", value=roles)
+        embed.add_field(name="# of Text Channels", value=text_channels)
+        embed.add_field(name="# of Voice Channels", value=voice_channels)
+        embed.add_field(name="# of Categories", value=category_channels)
+        embed.add_field(name="Members Online", value=online)
+        embed.add_field(name="Members Idle", value=idle)
+        embed.add_field(name="Members Busy", value=dnd)
+        embed.add_field(name="Members Offline/Invisible", value=offline)
+        embed.add_field(name="Members using the Desktop App", value=str(desktop) + " online\n" + str(desktopidle) + " idle\n" + str(desktopdnd) + " busy")
+        embed.add_field(name="Members using the Browser App", value=str(web) + " online\n" + str(webidle) + " idle\n" + str(webdnd) + " busy")
+        embed.add_field(name="Members using the Mobile App", value=str(mobile) + " online\n" + str(mobileidle) + " idle\n" + str(mobilednd) + " busy")
         embed.set_thumbnail(url=ctx.guild.icon_url)
-
+        
         await ctx.send(embed=embed)
-    
+
     
     @commands.command(name="channelinfo", aliases=['ci'])
     async def channel_info(self, ctx: Context, channel: TextChannel) -> None:
@@ -174,23 +189,16 @@ class Info(commands.Cog):
         discrim = user.discriminator
         bot = user.bot
         
-        embed = Embed(
-            colour=Colour.blurple(),
-            description=f"""
-                **User information**
-                Created: {created}
-                Name: {name}
-                Discriminator: {discrim}
-                ID: {id}
-                Tag: {str(name)}
-                is a Bot?: {bot}
-            """
-        )
-
+        embed = discord.Embed(title="User information", colour=Colour.blurple())
+        embed.add_field(name="Account made on", value=created.strftime("%d/%m/%Y %H:%M"))
+        embed.add_field(name="Username", value=name)
+        embed.add_field(name="Users Discriminator", value=discrim)
+        embed.add_field(name="Users ID", value=id)
+        embed.add_field(name="Tag", value=str(name) + "#" + str(discrim))
+        embed.add_field(name="Bot?", value=bot)
         embed.set_thumbnail(url=user.avatar_url)
 
         await ctx.send(embed=embed)
-
 
     @commands.command(name="botinfo", aliases=['bi', 'info'])
     async def botinfo(self, ctx: Context) -> None:
@@ -203,18 +211,12 @@ class Info(commands.Cog):
         discrim = ctx.me.discriminator
         guildcount = len(self.bot.guilds)
         
-        embed = Embed(
-            colour=Colour.blurple(),
-            description=f"""
-                **Bot information**
-                Created: {created}
-                Name: {name}
-                Discriminator: {discrim}
-                ID: {id}
-                Guilds: {guildcount}
-            """
-        )
-
+        embed = discord.Embed(title="Bot Information", colour=Colour.blurple())
+        embed.add_field(name="Bots Name", value=name)        
+        embed.add_field(name="Bots Discriminator", value=discrim)
+        embed.add_field(name="Bots ID", value=id)
+        embed.add_field(name="Number of guilds bot is in", value=guildcount)
+        embed.add_field(name="Bot created on", value=created)
         embed.set_thumbnail(url=ctx.me.avatar_url)
 
         await ctx.send(embed=embed)
@@ -225,6 +227,7 @@ class Info(commands.Cog):
         
         roles = ""
         activities = ""
+        created = user.created_on
         joined = user.joined_at
         name = user.name
         gstatus = user.status
@@ -239,32 +242,20 @@ class Info(commands.Cog):
         
         #List of users roles
         for i in range(len(user.roles)):
-            roles += str(user.roles[i]) + ", "
+            roles += str(user.roles[i])
         
-        #Activitie list for user
-        for i in range(len(user.activities)):
-            activities += str(user.activities[i]) + " "
-        
-        embed = Embed(
-            colour=Colour.blurple(),
-            description=f"""
-                **Member information**
-                Joined: {joined}
-                Name: {name}
-                Nick: {nick}
-                Boosted since: {boostsince}
-                Bot?: {bot}
-                Activities: {str(activities)}
-                Mobile?: {mobile}
-                Status: {gstatus}
-                Desktop App: {dstatus}
-                Web App (Could be on mobile web): {wstatus}
-                Mobile App (Android/iOS): {mstatus}
-                Roles: {str(roles)}
-                Top Role: {top}               
-            """
-        )
-
+        embed = discord.Embed(title="Member Information", colour=Colour.blurple())
+        embed.add_field(name="Member created on", value=createdstrftime("%d/%m/%Y %H:%M"))
+        embed.add_field(name="Member joined on", value=joined.strftime("%d/%m/%Y %H:%M"))
+        embed.add_field(name="Members Nickname", value=nick)
+        embed.add_field(name="Boosted server since", value=boostsince)
+        embed.add_field(name="Bot?", value=bot)
+        embed.add_field(name="On Mobile?", value=mobile)
+        embed.add_field(name="Desktop App", value=dstatus)
+        embed.add_field(name="Web/Browser App", value=wstatus)
+        embed.add_field(name="Android/iOS App", value=mstatus)
+        embed.add_field(name="Roles Member is in", value=roles)
+        embed.add_field(name="Highest role of Member", value=top)
         embed.set_thumbnail(url=user.avatar_url)
 
         await ctx.send(embed=embed)
@@ -300,73 +291,7 @@ class Info(commands.Cog):
         embed = Embed(
             colour=Colour.blurple(),
             description=f"""
-                **Permission information**
-                Administrator?: {admin}*
-                
-                **General Permissions**
-                View Audit Log?: {audit}
-                Manage Server?: {server}
-                Manage Roles?: {role}
-                Manage Channels?: {chan}
-                Kick Members?: {kick}
-                Ban Members?: {ban}
-                Create Invite?: {inv}
-                Change Nickname?: {chnick}
-                Manage Nicknames?: {mnick}
-                Manage Emojis?: {emoji}
-                Manage Webhooks?: {webh}
-                Read Text/Voice Channels?: {read}
-                **Text Permissions**
-                Send Msgs?: {send}
-                Send TTS?: {sendtts}
-                Manage Msgs?: {mmsg}
-                Embed Links?: {embedl}
-                Attach Files?: {files}
-                Read Msg History?: {hist}
-                @everyone?: {eone}
-                Use External Emojis?: {exemojis}
-                Add Reactions?: {react}
-                
-                _**Notes:**_
-                * This perm overrides all below it making everything else automatically true
-            """
-        )
-
-        embed.set_thumbnail(url=user.avatar_url)
-
-        await ctx.send(embed=embed)
-
-    @commands.command(name="roleperms")
-    async def role_perm_info(self, ctx: Context, role: Role) -> None:
-        """Returns info about a roles permissions"""
-        
-        admin = role.permissions.administrator
-        audit = role.permissions.view_audit_log
-        server = role.permissions.manage_guild
-        role = role.permissions.manage_roles
-        chan = role.permissions.manage_channels
-        kick = role.permissions.kick_members
-        ban = role.permissions.ban_members
-        inv = role.permissions.create_instant_invite
-        chnick = role.permissions.change_nickname
-        mnick = role.permissions.manage_nicknames
-        emoji = role.permissions.manage_emojis
-        webh = role.permissions.manage_webhooks
-        read = role.permissions.read_messages
-        send = role.permissions.send_messages
-        sendtts = role.permissions.send_tts_messages
-        mmsg = role.permissions.manage_messages
-        embedl = role.permissions.embed_links
-        files = role.permissions.attach_files
-        hist = role.permissions.read_message_history
-        eone = role.permissions.mention_everyone
-        exemojis = role.permissions.external_emojis
-        react = role.permissions.add_reactions
-        
-        embed = Embed(
-            colour=Colour.blurple(),
-            description=f"""
-                **Permission information**
+                **Permission information for {user.name}**
                 Administrator?: {admin}*
                 
                 **General Permissions**
@@ -405,28 +330,21 @@ class Info(commands.Cog):
     @commands.command(name="roles")
     async def roles_info(self, ctx: Context) -> None:
         """Returns a list of all roles and their corresponding IDs."""
-        # Sort the roles alphabetically and remove the @everyone role
-        roles = sorted(ctx.guild.roles, key=lambda role: role.name)
-        roles = [role for role in roles if role.name != "@everyone"]
+        # Sort the roles by the order as shown in the client's Roles UI
+        roles = sorted(ctx.guild.roles, key=lambda role: role.position, reverse=True)
+        #roles = [role for role in roles if role.name != "@everyone"]        
 
         # Build a string
         role_string = ""
         for role in roles:
-            role_string += f"`{role.id}` - {role.mention}\n"
+            role_string += f"{role.position} - {role.mention}\n"
+       
+        embed = discord.Embed(title="Roles", colour=Colour.blurple(), description=f"""{role_string}""")
+        
+       
+        await ctx.send(embed=embed)        
 
-        # Build an embed
-        embed = Embed(
-            title="Role information",
-            colour=Colour.blurple(),
-            description=role_string
-        )
-
-        embed.set_footer(text=f"Total roles: {len(roles)}")
-
-        await ctx.send(embed=embed)
-
-
-    @commands.command(name="role")
+    @commands.command(name="roleinfo")
     async def role_info(self, ctx: Context, *roles: typing.Union[Role, str]) -> None:
         """
         Return information on a role or list of roles.
