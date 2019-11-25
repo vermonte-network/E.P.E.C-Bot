@@ -11,7 +11,7 @@ class Mod(commands.Cog):
         self.bot = bot
     
     class get:
-        def superior(Member1, Member2):
+        def superior(self, Member1, Member2):
             if Member1.top_role.position > Member2.top_role.position:
                 return Member1
             elif Member1.top_role.position < Member2.top_role.position:
@@ -58,7 +58,7 @@ class Mod(commands.Cog):
     @commands.command(name="kick")
     @commands.has_permissions(kick_members=True)
     @commands.guild_only()
-    async def kick(self, ctx, *, member: discord.Member):
+    async def kick(self, ctx, *, user: discord.Member):
         """Kicks a user"""
         try:
             await ctx.guild.kick(user, reason="Kicked by " + ctx.author.name)
@@ -67,6 +67,19 @@ class Mod(commands.Cog):
         else:
             await ctx.send(user.name + " was kicked.")
     
+    @commands.command(name="verify", aliases=["vrf"])
+    @commands.has_permissions(change_nickname=True, manage_roles=True)
+    @commands.guild_only()
+    async def verification(self, ctx, user: discord.Member, role: discord.Role, *, nick=""):
+        """Verifys user"""
+        try:
+            await user.add_roles(role)
+            await user.edit(nick=nick)
+        except discord.Forbidden:
+            await ctx.send("Could not change " + str(user.name) + "'s nickname or role")
+        else:
+            await ctx.send(str(user.name) + "'s nickname was changed to `"+str(nick)+"` and "+str(user.name)+"'s role was set to `"+str(role)+"`")
+
     @commands.command(name="nick", aliases=["nickname"])
     @commands.has_permissions(change_nickname=True)
     @commands.guild_only()
@@ -86,14 +99,14 @@ class Mod(commands.Cog):
         """Add or remove role from user"""
         if role in user.roles:
             try:
-                await ctx.guild.remove_roles(role)
+                await user.remove_roles(role)
             except discord.Forbidden:
                 await ctx.send("Could not remove " + user.name + "'s role")
             else:
                 await ctx.send(user.name + " was removed from the role " + role.name)
         else:
             try:
-                await ctx.guild.add_roles(role)
+                await user.add_roles(role)
             except discord.Forbidden:
                 await ctx.send("Could not add a role to " + user.name)
             else:

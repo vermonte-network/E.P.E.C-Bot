@@ -1,10 +1,10 @@
 import discord
+import dateutil
 from discord.ext import commands
 from discord import CategoryChannel, Client, Colour, Embed, Guild, Member, Role, TextChannel, User, VoiceChannel, utils
 from discord.ext.commands import Bot, BucketType, Cog, Context, command, group
 import typing
 import colorsys
-
 
 class Info(commands.Cog):
     """Info"""
@@ -21,6 +21,7 @@ class Info(commands.Cog):
         
         id = ctx.guild.id
         owner = ctx.guild.owner
+        ownerdn = ctx.guild.owner.display_name
         
         boostlvl = ctx.guild.premium_tier
         boostlen = ctx.guild.premium_subscription_count
@@ -34,8 +35,8 @@ class Info(commands.Cog):
         regionFlag = {
             "amsterdam": ":flag_nl: - Amsterdam",
             "brazil": ":flag_br: -  Brazil",
-            "eu-central": ":flag_eu: - Central Europe",
-            "eu-west": ":flag_eu: - West Europe",
+            "eu_central": ":flag_eu: - Central Europe",
+            "eu_west": ":flag_eu: - West Europe",
             "europe": ":flag_eu: - Europe",
             "frankfurt": ":flag_de: - Frankfurt",
             "hongkong": ":flag_ch: - Hong Kong",
@@ -79,6 +80,9 @@ class Info(commands.Cog):
         mobile = 0
         web = 0
         desktop = 0
+        mobileonline = 0
+        webonline = 0
+        desktoponline = 0
         mobileidle = 0
         webidle = 0
         desktopidle = 0
@@ -97,12 +101,18 @@ class Info(commands.Cog):
                 dnd += 1
         
         for member in members:
+            if str(member.mobile_status) == "online" or str(member.mobile_status) == "dnd" or str(member.mobile_status) == "idle":
+               mobile += 1
+            if str(member.web_status) == "online" or str(member.web_status) == "dnd" or str(member.web_status) == "idle":
+               web += 1
+            if str(member.desktop_status) == "online" or str(member.desktop_status) == "dnd" or str(member.desktop_status) == "idle":
+               desktop += 1
             if str(member.mobile_status) == "online":
-                mobile += 1
+                mobileonline += 1
             if str(member.web_status) == "online":
-                web += 1
+                webonline += 1
             if str(member.desktop_status) == "online":
-                desktop += 1
+                desktoponline += 1
             if str(member.mobile_status) == "dnd":
                 mobilednd += 1
             if str(member.web_status) == "dnd":
@@ -116,70 +126,98 @@ class Info(commands.Cog):
             if str(member.desktop_status) == "idle":
                 desktopidle += 1
 
-        embed = discord.Embed(title="Server (Guild) information", colour=Colour.blurple())
-        embed.add_field(name="ID", value=id)
-        embed.add_field(name="Guild Created On", value=created.strftime("%A %d %B %Y %H:%M"))
-        embed.add_field(name="Owner", value=owner)
-        embed.add_field(name="Voice Region", value=" ".join([regionFlag[n] for n in region]))
+        embed = discord.Embed(title=str(ctx.guild.name) + "'s information", colour=Colour.blurple())
+        embed.add_field(name=":id:", value=id)
+        embed.add_field(name=":date: Guild Created On", value=created.strftime("%A %d %B %Y %H:%M"))
+        embed.add_field(name=":bust_in_silhouette: Owner", value=str(owner) + " aka " + str(ownerdn))
+        embed.add_field(name=":telephone_receiver:  Voice Region", value=" ".join([regionFlag[n] for n in region]))
         embed.add_field(name="Nitro Level", value=str(boostlvl) + "/" + str(3))
-        embed.add_field(name="Number of Members currently boosting", value=str(boostlen) + "/" + str(member_count))
-        embed.add_field(name="# of Members", value=member_count)
+        embed.add_field(name="Number of Members currently boosting", value=str(boostlen) + "/" + str(30))
+        embed.add_field(name=":busts_in_silhouette: # of Members", value=member_count)
         embed.add_field(name="... of which human", value=len([member for member in ctx.guild.members if not member.bot]))
         embed.add_field(name="... of which bots", value=len([member for member in ctx.guild.members if member.bot]))
-        embed.add_field(name="# of Banned Members", value=len(await ctx.guild.bans()))
-        embed.add_field(name="# of Roles", value=roles)
-        embed.add_field(name="# of Text Channels", value=text_channels)
-        embed.add_field(name="# of Voice Channels", value=voice_channels)
-        embed.add_field(name="# of Categories", value=category_channels)
-        embed.add_field(name="Members Online", value=online)
-        embed.add_field(name="Members Idle", value=idle)
-        embed.add_field(name="Members Busy", value=dnd)
-        embed.add_field(name="Members Offline/Invisible", value=offline)
-        embed.add_field(name="Members using the Desktop App", value=str(desktop) + " online\n" + str(desktopidle) + " idle\n" + str(desktopdnd) + " busy")
-        embed.add_field(name="Members using the Browser App", value=str(web) + " online\n" + str(webidle) + " idle\n" + str(webdnd) + " busy")
-        embed.add_field(name="Members using the Mobile App", value=str(mobile) + " online\n" + str(mobileidle) + " idle\n" + str(mobilednd) + " busy")
+        embed.add_field(name="... of Banned Members", value=len(await ctx.guild.bans()))
+        embed.add_field(name="... of Roles", value=roles)
+        embed.add_field(name="... of Text Channels", value=text_channels)
+        embed.add_field(name="... of Voice Channels", value=voice_channels)
+        embed.add_field(name="... of Categories", value=category_channels)
+        embed.add_field(name=":green_circle: Members Online", value=online)
+        embed.add_field(name=":orange_circle: Members Idle", value=idle)
+        embed.add_field(name=":red_circle: Members Busy", value=dnd)
+        embed.add_field(name=":black_circle: Members Offline/Invisible", value=offline)
+        embed.add_field(name=":computer: Members using the Desktop App", value=str(desktop) + " total\n" + str(desktoponline) + " online\n" + str(desktopidle) + " idle\n" + str(desktopdnd) + " busy")
+        embed.add_field(name="Members using the Browser App", value=str(web) + " total\n" + str(webonline) + " online\n" + str(webidle) + " idle\n" + str(webdnd) + " busy")
+        embed.add_field(name=":iphone: Members using the Mobile App", value=str(mobile) + " total\n" + str(mobileonline) + " online\n" + str(mobileidle) + " idle\n" + str(mobilednd) + " busy")
         embed.set_thumbnail(url=ctx.guild.icon_url)
         
+        if boostlen > 30:
+            embed.set_footer(text="Max Level", icon_url="")
+        else:
+            embed.set_footer(text=str(30 - boostlen) + " boosts to go for max boost level", icon_url="")
+                   
         await ctx.send(embed=embed)
 
     
-    @commands.command(name="channelinfo", aliases=['ci'])
-    async def channel_info(self, ctx: Context, channel: TextChannel) -> None:
+    @commands.command(name="textchannelinfo", aliases=['tci'])
+    async def text_channel_info(self, ctx: Context, channel: discord.TextChannel) -> None:
         """Returns info about a channel."""   
     
-        name = ctx.bot.fetch_channel(channel).name
-        created = ctx.bot.fetch_channel(channel).created_at
-        id = ctx.bot.fetch_channel(channel).id
-        catid = ctx.bot.fetch_channel(channel).category_id
-        cat = ctx.bot.fetch_channel(channel).category
-        topic = ctx.bot.fetch_channel(channel).topic
-        pos = ctx.bot.fetch_channel(channel).position
-        type = ctx.bot.fetch_channel(channel).type
-        nsfw = ctx.bot.fetch_channel(channel).is_nsfw()
-        croles = ctx.bot.fetch_channel(channel).changed_roles
+        name = channel.name
+        created = channel.created_at
+        id = channel.id
+        catid = channel.category_id
+        cat = channel.category
+        topic = channel.topic
+        pos = channel.position
+        type = channel.type
+        nsfw = channel.is_nsfw()
+        croles = channel.changed_roles
     
-        embed = Embed(
-            colour=Colour.blurple(),
-            description=f"""
-                **Channel information**
-                Created: {created}
-                Name: {name}
-                ID: {id}
-                Category ID: {catid}
-                Category: {cat}
-                Topic: {topic}
-                Position: {position}
-                Type: {type}
-                NSFW?: {nsfw}
-                Changed Roles: {croles}
-            """
-        )
+        embed = discord.Embed(title=channel.name + "'s Information" ,colour=Colour.blurple())
+        embed.add_field(name="Created", value=created)
+        embed.add_field(name="Name", value=name)
+        embed.add_field(name="ID", value=id)
+        embed.add_field(name="Category ID", value=catid)
+        embed.add_field(name="Category", value=cat)
+        embed.add_field(name="Topic", value=topic)
+        embed.add_field(name="Position", value=pos)
+        embed.add_field(name="Channel Type", value=type)
+        embed.add_field(name="is NSFW?", value=nsfw)
+        embed.add_field(name="Changed Roles", value=croles) 
         
         await ctx.send(embed=embed)
         
+    @commands.command(name="voicechannelinfo", aliases=['vci'])
+    async def voice_channel_info(self, ctx: Context, channel: discord.VoiceChannel) -> None:
+        """Returns info about a channel."""   
+        
+        name = channel.name
+        created = channel.created_at
+        id = channel.id
+        catid = channel.category_id
+        cat = channel.category
+        pos = channel.position
+        type = channel.type
+        croles = channel.changed_roles
+        ulimit = channel.user_limit
+        bitrate = channel.bitrate
+    
+        embed = discord.Embed(title=channel.name + "'s Information" ,colour=Colour.blurple())
+        embed.add_field(name="Created", value=created)
+        embed.add_field(name="Name", value=name)
+        embed.add_field(name="ID", value=id)
+        embed.add_field(name="Category ID", value=catid)
+        embed.add_field(name="Category", value=cat)
+        embed.add_field(name="Position", value=pos)
+        embed.add_field(name="User Limit", value=ulimit)
+        embed.add_field(name="Bitrate", value=bitrate)
+        embed.add_field(name="Channel Type", value=type)
+        embed.add_field(name="Changed Roles", value=croles) 
+        
+        await ctx.send(embed=embed)
     
     @commands.command(name="userinfo", aliases=['ui', 'clientinfo'])
-    async def user_info(self, ctx: Context, user: User) -> None:
+    async def user_info(self, ctx: Context, user: discord.User) -> None:
         """Returns info about a user."""
         
         created = user.created_at
@@ -189,8 +227,8 @@ class Info(commands.Cog):
         discrim = user.discriminator
         bot = user.bot
         
-        embed = discord.Embed(title="User information", colour=Colour.blurple())
-        embed.add_field(name="Account made on", value=created.strftime("%d/%m/%Y %H:%M"))
+        embed = discord.Embed(title=str(user.name) + "'s information", colour=Colour.blurple())
+        embed.add_field(name="Account made on", value=created.strftime("%A %d %B %Y %H:%M"))
         embed.add_field(name="Username", value=name)
         embed.add_field(name="Users Discriminator", value=discrim)
         embed.add_field(name="Users ID", value=id)
@@ -211,23 +249,22 @@ class Info(commands.Cog):
         discrim = ctx.me.discriminator
         guildcount = len(self.bot.guilds)
         
-        embed = discord.Embed(title="Bot Information", colour=Colour.blurple())
+        embed = discord.Embed(title="Bots Information", colour=Colour.blurple())
         embed.add_field(name="Bots Name", value=name)        
         embed.add_field(name="Bots Discriminator", value=discrim)
         embed.add_field(name="Bots ID", value=id)
         embed.add_field(name="Number of guilds bot is in", value=guildcount)
-        embed.add_field(name="Bot created on", value=created)
+        embed.add_field(name="Bot created on", value=created.strftime("%A %d %B %Y %H:%M"))
         embed.set_thumbnail(url=ctx.me.avatar_url)
 
         await ctx.send(embed=embed)
 
     @commands.command(name="memberinfo", aliases=['mi'])
-    async def member_info(self, ctx: Context, user: Member) -> None:
+    async def member_info(self, ctx: Context, user: discord.Member) -> None:
         """Returns info about a member."""
-        
+                
         roles = ""
         activities = ""
-        created = user.created_on
         joined = user.joined_at
         name = user.name
         gstatus = user.status
@@ -242,25 +279,56 @@ class Info(commands.Cog):
         
         #List of users roles
         for i in range(len(user.roles)):
-            roles += str(user.roles[i])
+            roles += str(user.roles[i].mention) + ", "
         
-        embed = discord.Embed(title="Member Information", colour=Colour.blurple())
-        embed.add_field(name="Member created on", value=createdstrftime("%d/%m/%Y %H:%M"))
-        embed.add_field(name="Member joined on", value=joined.strftime("%d/%m/%Y %H:%M"))
+        embed = discord.Embed(title=str(user.display_name) + "'s Information", colour=Colour.blurple())
+        embed.add_field(name="Member joined on", value=joined.strftime("%A %d %B %Y %H:%M"))
         embed.add_field(name="Members Nickname", value=nick)
-        embed.add_field(name="Boosted server since", value=boostsince)
-        embed.add_field(name="Bot?", value=bot)
-        embed.add_field(name="On Mobile?", value=mobile)
-        embed.add_field(name="Desktop App", value=dstatus)
+        if boostsince == None:
+            embed.add_field(name="Boosted server since", value="Never boosted")
+        else:
+            embed.add_field(name="Boosted server since", value=boostsince.strftime("%A %d %B %Y %H:%M"))
+        embed.add_field(name=":robot: Bot?", value=bot)
+        embed.add_field(name=":iphone: On Mobile?", value=mobile)
+        embed.add_field(name=":computer: Desktop App", value=dstatus)
         embed.add_field(name="Web/Browser App", value=wstatus)
-        embed.add_field(name="Android/iOS App", value=mstatus)
+        embed.add_field(name=":iphone: Android/iOS App", value=mstatus)
         embed.add_field(name="Roles Member is in", value=roles)
         embed.add_field(name="Highest role of Member", value=top)
         embed.set_thumbnail(url=user.avatar_url)
 
         await ctx.send(embed=embed)
         
+    @commands.command(name="avatar")
+    async def avatar(self, ctx: Context, user: discord.Member) -> None:
+        """Returns a users avatar"""
         
+        avatar = user.avatar_url
+        
+        embed = discord.Embed(title=user.display_name +"'s avatar", colour=Colour.blurple())
+        embed.set_image(url=avatar)
+        
+        await ctx.send(embed=embed)
+        
+    @commands.command(name="roleperms")
+    async def role_perm_info(self, ctx: Context, role: discord.Role) -> None:
+        """Returns info about a members permissions"""
+        
+        admin = role.permissions.administrator
+        
+        embed = Embed(
+            colour=Colour.blurple(),
+            description=f"""
+                **Permission information for {role.name}**
+                Administrator?: {admin}*
+                
+                _**Notes:**_
+                * This perm overrides all below it making everything else automatically true
+            """
+        )
+        
+        await ctx.send(embed=embed)
+
     @commands.command(name="perms")
     async def perm_info(self, ctx: Context, user: Member) -> None:
         """Returns info about a members permissions"""
@@ -387,7 +455,6 @@ class Info(commands.Cog):
             embed.add_field(name="Permission code", value=role.permissions.value, inline=True)
 
             await ctx.send(embed=embed)
-            
 
 def setup(bot):
     bot.add_cog(Info(bot))
