@@ -1,0 +1,18 @@
+General - 0
+Info - 0
+info-rules - 0
+General - 1
+announcements - 1
+Staff Voice - 1
+general - 2
+Admin Voice - 2
+Staff Quarters - 3
+bot-commands - 3
+Board Room - 3
+welcomes - 4
+Administration Wing - 4
+Boss Lair - 5
+general - 5
+admin-general - 6
+board-room - 7
+staff-commands - 8

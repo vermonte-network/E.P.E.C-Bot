@@ -14,23 +14,29 @@ class Info(commands.Cog):
         self.bot = bot
 
     @commands.command(name="guildinfo", aliases=['gi', 'serverinfo'])
-    async def guildinfo(self, ctx: Context) -> None:
+    async def guildinfo(self, ctx: Context, *, guild_id: int = None) -> None:
         """Returns info about a guild"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
         
-        created = ctx.guild.created_at
-        features = ", ".join(ctx.guild.features)
+        created = guild.created_at
+        features = ", ".join(guild.features)
         
         id = ctx.guild.id
-        owner = ctx.guild.owner
-        ownerdn = ctx.guild.owner.display_name
+        owner = guild.owner
+        ownerdn = guild.owner.display_name
         
-        boostlvl = ctx.guild.premium_tier
-        boostlen = ctx.guild.premium_subscription_count
+        boostlvl = guild.premium_tier
+        boostlen = guild.premium_subscription_count
        
         #lists of server elements
-        rolelist = ctx.guild.roles
-        cats = ctx.guild.categories
-        chans = ctx.guild.text_channels
+        rolelist = guild.roles
+        cats = guild.categories
+        chans = guild.text_channels
         
         #Dictionary of flags
         regionFlag = {
@@ -60,12 +66,12 @@ class Info(commands.Cog):
             'us-west': ""
         }
 
-        region = ctx.guild.region
+        region = guild.region
         
         
         # How many of each type of channel?
-        roles = len(ctx.guild.roles)
-        channels = ctx.guild.channels
+        roles = len(guild.roles)
+        channels = guild.channels
         text_channels = 0
         category_channels = 0
         voice_channels = 0
@@ -78,8 +84,8 @@ class Info(commands.Cog):
                 voice_channels += 1
        
         # How many of each client type status?
-        member_count = ctx.guild.member_count
-        members = ctx.guild.members
+        member_count = guild.member_count
+        members = guild.members
         available = 0
         online = 0
         dnd = 0
@@ -136,7 +142,7 @@ class Info(commands.Cog):
             if str(member.desktop_status) == "idle":
                 desktopidle += 1
 
-        embed = discord.Embed(title=str(ctx.guild.name) + "'s information", colour=Colour.blurple())
+        embed = discord.Embed(title=str(guild.name) + "'s information", colour=Colour.blurple())
         embed.add_field(name=":id:", value=id)
         embed.add_field(name=":date: Guild Created On", value=created.strftime("%A %d %B %Y %H:%M"))
         embed.add_field(name=":bust_in_silhouette: Owner", value=str(owner) + " aka " + str(ownerdn))
@@ -157,8 +163,8 @@ class Info(commands.Cog):
         else:
             embed.add_field(name=".. needed for lvl 3", value=str(30 - boostlen))
         embed.add_field(name=":busts_in_silhouette: # of Members", value=member_count)
-        embed.add_field(name="... of which human", value=len([member for member in ctx.guild.members if not member.bot]))
-        embed.add_field(name="... of which bots", value=len([member for member in ctx.guild.members if member.bot]))
+        embed.add_field(name="... of which human", value=len([member for member in guild.members if not member.bot]))
+        embed.add_field(name="... of which bots", value=len([member for member in guild.members if member.bot]))
         embed.add_field(name="... of Roles", value=roles)
         embed.add_field(name="... of Text Channels", value=text_channels)
         embed.add_field(name="... of Voice Channels", value=voice_channels)
@@ -171,7 +177,7 @@ class Info(commands.Cog):
         embed.add_field(name=":computer: Members using the Desktop App", value=str(desktop) + " total\n" + str(desktoponline) + " online\n" + str(desktopidle) + " idle\n" + str(desktopdnd) + " busy")
         embed.add_field(name="Members using the Browser App", value=str(web) + " total\n" + str(webonline) + " online\n" + str(webidle) + " idle\n" + str(webdnd) + " busy")
         embed.add_field(name=":iphone: Members using the Mobile App", value=str(mobile) + " total\n" + str(mobileonline) + " online\n" + str(mobileidle) + " idle\n" + str(mobilednd) + " busy")
-        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.set_thumbnail(url=guild.icon_url)
         
         if boostlen > 30:
             embed.set_footer(text="Max Level reached", icon_url="")
@@ -183,7 +189,7 @@ class Info(commands.Cog):
     @commands.command(name="textchannelinfo", aliases=['tci'])
     async def text_channel_info(self, ctx: Context, channel: discord.TextChannel) -> None:
         """Returns info about a channel."""   
-    
+         
         name = channel.name
         created = channel.created_at
         id = channel.id
@@ -206,9 +212,7 @@ class Info(commands.Cog):
         embed.add_field(name="Channel Type", value=type)
         embed.add_field(name="is NSFW?", value=nsfw)
         embed.add_field(name="Changed Roles", value=croles) 
-        channel.overwrites
-        
-        
+                
         await ctx.send(embed=embed)
         
     @commands.command(name="voicechannelinfo", aliases=['vci'])
@@ -289,7 +293,7 @@ class Info(commands.Cog):
     @commands.command(name="memberinfo", aliases=['mi'])
     async def member_info(self, ctx: Context, user: discord.Member) -> None:
         """Returns info about a member."""
-                
+               
         roles = ""
         activities = ""
         joined = user.joined_at
@@ -451,6 +455,253 @@ class Info(commands.Cog):
        
         await ctx.send(embed=embed)        
 
+    @commands.command(name="joinlist")
+    async def join_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve List of Member by join date"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+                
+        user_string = ""
+        for user in users:
+            joined = user.joined_at
+            user_string += f"""{user.display_name} - {user.top_role} - {joined.strftime("%A %d %B %Y %H:%M")}\n"""
+        
+        f = open("export/joins.txt", "w")
+        f.write(user_string)
+        f.close()     
+        
+        file = discord.File("export/joins.txt")
+        
+        await ctx.send(str("Dumped data to file"), files=[file])
+      
+    @commands.command(name="botjoinlist")
+    async def botjoin_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve List of Bots by join date"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+        users = [user for user in users if user.bot]       
+        
+        user_string = ""
+        for user in users:
+            joined = user.joined_at
+            user_string += f"""{user.display_name} - {user.top_role} - {joined.strftime("%A %d %B %Y %H:%M")}\n"""
+        
+        f = open("export/botjoins.txt", "w")
+        f.write(user_string)
+        f.close()     
+        
+        file = discord.File("export/botjoins.txt")
+        
+        await ctx.send(str("Dumped data to file"), files=[file])
+       
+    @commands.command(name="nopclist")
+    async def nd_status_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve list of Members not on the Desktop App"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+        users = [user for user in users if not user.is_on_pc()]
+
+        user_string = ""
+        for user in users:
+            user_string += f"""{user.name} - {user.display_name}\n"""
+
+        f = open("export/nopclist.txt", "w")
+        f.write("Users not on PC\n\n"+user_string)
+        f.close()
+
+        file = discord.File("export/nopclist.txt")
+
+        await ctx.send(str("Dumped Data to file"), files=[file])
+        
+    @commands.command(name="pclist")
+    async def d_status_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve list of Members on the Desktop App"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+        users = [user for user in users if user.is_on_pc()]
+
+        user_string = ""
+        for user in users:
+            user_string += f"""{user.name} - {user.display_name}\n"""
+
+        f = open("export/pclist.txt", "w")
+        f.write("Users on PC\n\n"+user_string)
+        f.close()
+
+        file = discord.File("export/pclist.txt")
+
+        await ctx.send(str("Dumped Data to file"), files=[file])
+    
+    @commands.command(name="nonmobilelist") 
+    async def nm_status_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve list of Members not on the iOS/Android App"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+        users = [user for user in users if not user.is_on_mobile()]
+
+        user_string = ""
+        for user in users:
+            user_string += f"""{user.name} - {user.display_name}\n"""
+
+        f = open("export/nomobilelist.txt", "w")
+        f.write("Users not on iOS/Android\n\n"+user_string)
+        f.close()
+
+        file = discord.File("export/nomobilelist.txt")
+
+        await ctx.send(str("Dumped Data to file"), files=[file])   
+    
+    @commands.command(name="mobilelist") 
+    async def m_status_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve list of Members on the iOS/Android App"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+        users = [user for user in users if user.is_on_mobile()]
+
+        user_string = ""
+        for user in users:
+            user_string += f"""{user.name} - {user.display_name}\n"""
+
+        f = open("export/mobilelist.txt", "w")
+        f.write("Users on iOS/Android\n\n"+user_string)
+        f.close()
+
+        file = discord.File("export/mobilelist.txt")
+
+        await ctx.send(str("Dumped Data to file"), files=[file])
+
+    @commands.command(name="nonweblist")
+    async def nw_status_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve list of Members not on Discord Browser App or isn't a bot"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+        users = [user for user in users if not user.is_on_web()]
+
+        user_string = ""
+        for user in users:
+            user_string += f"""{user.name} - {user.display_name}\n"""
+
+        f = open("export/noweblist.txt", "w")
+        f.write("Users not on web-browser/not bots\n\n"+user_string)
+        f.close()
+
+        file = discord.File("export/noweblist.txt")
+
+        await ctx.send(str("Dumped Data to file"), files=[file])
+
+    @commands.command(name="weblist")
+    async def w_status_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve list of Members on Discord Browser App or is a bot"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+        users = [user for user in users if user.is_on_web()]
+
+        user_string = ""
+        for user in users:
+            user_string += f"""{user.name} - {user.display_name}\n"""
+
+        f = open("export/weblist.txt", "w")
+        f.write("Users on web-browser/bots\n\n"+user_string)
+        f.close()
+
+        file = discord.File("export/weblist.txt")
+
+        await ctx.send(str("Dumped Data to file"), files=[file])
+
+    @commands.command(name="userjoinlist")
+    async def humanjoin_list(self, ctx, *, guild_id: int = None) -> None:
+        """Retrieve List of Users by join date"""
+        if guild_id is not None and await self.bot.is_owner(ctx.author):
+            guild = self.bot.get_guild(guild_id)
+            if guild is None:
+                return await ctx.send(f'Invalid Guild ID given.')
+        else:
+            guild = ctx.guild
+        
+        users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
+        users = [user for user in users if not user.bot]       
+                
+        user_string = ""
+        for user in users:
+            joined = user.joined_at
+            user_string += f"""{user.display_name} - {user.top_role} - {joined.strftime("%A %d %B %Y %H:%M")}\n"""
+        
+        f = open("export/userjoins.txt", "w")
+        f.write(user_string)
+        f.close()     
+        
+        file = discord.File("export/userjoins.txt")
+        
+        await ctx.send(str("Dumped data to file"), files=[file])
+          
+        
+    @commands.command(name="channellist")
+    async def channel_list(self, ctx: Context, *, guild_id: int = None) -> None:
+        """Retrieve List of channels"""
+        channels = sorted(ctx.guild.channels, key=lambda channel: channel.position, reverse=False)     
+                                
+        channel_string = ""
+        for channel in channels:
+            position = channel.position
+            channel_string += f"""{channel.name} - {position}\n"""
+        
+        f = open("export/chanlist.txt", "w")
+        f.write(channel_string)
+        f.close()     
+        
+        file = discord.File("export/chanlist.txt")
+        
+        await ctx.send(str("Dumped data to file"), files=[file])
+          
+        
     @commands.command(name="memberroles")
     async def user_roles_info(self, ctx: Context, user: discord.Member) -> None:
         """Returns a list of a members roles and their corresponding IDs."""
@@ -560,6 +811,7 @@ class Info(commands.Cog):
 
         p_session = PaginatorSession(ctx, footer=f'Created At: {thing}', pages=pages)
         await p_session.run()
+
 
 def setup(bot):
     bot.add_cog(Info(bot))
