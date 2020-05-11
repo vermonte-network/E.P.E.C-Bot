@@ -9,6 +9,8 @@ import urllib.parse
 import BotUtils
 from aioauth_client import TwitterClient
 import aiohttp
+import asyncio
+import logging
 
 class APIs(commands.Cog):
     """APIs"""
@@ -103,10 +105,31 @@ class APIs(commands.Cog):
     def getCSStat(self, data, stat):
         return [i for i in data["stats"] if i["name"] == stat][0]["value"]
 
-
     # ---
     # GAMES
     # ---
+
+    @commands.command(name="fetchcc")
+    async def fetch_cc(self, ctx, *,  server=None):
+        """Fetches Classicube Server data"""
+        await ctx.send("Enabled auto fetch of Classicube Server Files")
+        data = await self.REST("https://www.classicube.net/api/servers/")
+
+        active = True
+        while active == True:
+            f = open("classicube/"+datetime.now().strftime('%Y-%m-%d - %I:%M %p')+".csv", "a+")
+            f.write(str(data["servers"])+"\n")
+            await asyncio.sleep(3600)
+            if active == False:
+               break
+
+
+    @commands.command(name="dontfetchcc")
+    async def dis_cc(self, ctx, *,  server=None):
+        """No Longer Fetch Classicube Server data"""
+        await ctx.send("Disabled auto fetch of Classicube Server Files")
+        active = False
+
 
     @commands.command(name="classicube", aliases=["cc"])
     async def classiCubeAPI(self, ctx, *, user=None, server=None):
@@ -173,16 +196,21 @@ class APIs(commands.Cog):
             if await self.REST("https://classicube.s3.amazonaws.com/face/" + str(data["username"]) + ".png", returns="r.status == 200"):
                 embed.set_thumbnail(url="https://classicube.s3.amazonaws.com/face/" + str(data["username"]) + ".png")
             else: 
-            	  embed.set_thumbnail(url="https://www.classicube.net/face/" + str(data["username"]) + ".png")
+                embed.set_thumbnail(url="https://www.classicube.net/face/" + str(data["username"]) + ".png")
             
             
             embed.add_field(name="Avatar Url", value="[Click me](https://classicube.s3.amazonaws.com/face/" + str(data["username"]) + ".png)")
             embed.add_field(name="ID", value=data["id"])
             
+            if data["forum_title"] != "":
+                embed.add_field(name="Forum Title", value=data["forum_title"])
+            else:
+                embed.add_field(name="Forum Title", value="None Set")
+            
             ago = self.td_format(datetime.utcnow() - datetime.utcfromtimestamp(data["registered"]))
             if len(ago) == 0:
                 ago = "Under a minute"
-            embed.add_field(name="Account created", value="On " + datetime.utcfromtimestamp(data["registered"]).strftime("%c") + "\n" + ago + " ago")
+            embed.add_field(name="Account created", value="On " + datetime.utcfromtimestamp(data["registered"]).strftime("%A %d %B %Y %H:%M") + "\n" + ago + " ago", inline=False)
             if flags:
                 embed.add_field(name="Flags", value=", ".join(flags))
 
@@ -198,7 +226,7 @@ class APIs(commands.Cog):
                 file = discord.File("skins/2d/default.png", filename="skin.png")
                 file2 = discord.File("skins/head/default.png", filename="head.png")
 
-            embed.add_field(name="Flag Descriptions: ", value="--------")
+            embed.add_field(name="Flag Descriptions: ", value="--------", inline=False)
 
             if "a" in data["flags"]:
                 embed.add_field(name="'a': ", value="This Account can access the Classicube Admin Panel")
@@ -236,6 +264,11 @@ class APIs(commands.Cog):
             players = ""
 
             data = await self.REST("https://www.classicube.net/api/servers/")
+
+            f = open("classicube/"+datetime.now().strftime('%Y-%m-%d - %I:%M %p')+".json", "a+")
+            f.write(str(data)+"\n")
+            f.close()
+
             servercount += len(data["servers"])
             serverlist = []
             activeserverlist = []
@@ -254,11 +287,11 @@ class APIs(commands.Cog):
             activeserverlist = [s for s in data["servers"] if s["players"]]
                         
             for server in sorted(data["servers"], key=lambda k: k["players"], reverse=True):
-                
+
                 # Calculates all servers
                 if server["players"] >= 0:
                     maxcount += server["maxplayers"]
-                
+
                 # Calculates inactive servers
                 if server["players"] == 0:
                     inactivemaxcount += server["maxplayers"]
@@ -278,12 +311,10 @@ class APIs(commands.Cog):
 
             embed = discord.Embed(title="ClassiCube", colour=0x977dab)
             embed.add_field(name="Total Accounts", value=playercount)
-            
             embed.add_field(name="Online Players", value=str(onlinecount) + " player(s)")
             
-            
-            embed.add_field(name="Dead Servers", value=str(deadservers) + " server(s)")
             embed.add_field(name="Active Servers", value= str(activeservers) + " server(s)")
+            embed.add_field(name="Dead Servers", value=str(deadservers) + " server(s)")
             embed.add_field(name="Very Quiet Servers", value=str(superquietservers) + " server(s)")
             embed.add_field(name="Quiet Servers", value=str(quietservers) + " server(s)")
             embed.add_field(name="Typical Servers", value=str(typicalservers) + " server(s)")
@@ -295,18 +326,36 @@ class APIs(commands.Cog):
             embed.add_field(name="Inactive slots", value=str(inactivemaxcount) + " slot(s)")
             embed.add_field(name="Total Servers", value=str(servercount) + " server(s)")
             embed.add_field(name="Total Slots", value=str(maxcount) + " slot(s)")
-                 
-            
-            
-            for i in range(len(serverlist)):
-                embed.add_field(name="Servers with players\nClick the server names to join!", value=serverlist[i])
-            
-            embed.add_field(name="Stats: ", value="There are " + str(activeservers) + " out of " + str(servercount) + " servers active with " + str(inactiveservers) + " being inactive. " + str(onlinecount) + " slots are being used from a total of " + str(maxcount) + " available slots." + "The most popular server is " + str(activeserverlist[0]) + " and the least popular server is " + str(activeserverlist[-1]))        
-            embed.add_field(name="Player Stats: ", value= str(onlinecount) + " players are currently online.")
                         
             embed.set_footer(text="\U00002063", icon_url="https://www.classicube.net/static/img/cc-cube-small.png")
             embed.timestamp = datetime.utcnow()
             await ctx.send(embed=embed)
+
+            sembed = discord.Embed(title="Servers")
+            for i in range(len(serverlist)):
+                sembed.add_field(name="Servers with players\nClick the server names to join!", value=serverlist[i], inline=False)
+                
+            sembed.add_field(name="Stats: ", value="There are " + str(activeservers) + " out of " + str(servercount) + " servers active with " + str(inactiveservers) + " being inactive. " + str(onlinecount) + " slots are being used from a total of " + str(maxcount) + " available slots." + "The most popular server is " + str(serverlist[0].split("\n")[0]), inline=False)        
+            sembed.add_field(name="Player Stats: ", value= str(onlinecount) + " players are currently online.")
+            
+            await ctx.send(embed=sembed)
+
+
+    @commands.command(name="mcmodel")
+    async def minecraftModel(self, ctx, *, user=None):
+        """Gets model render of a Minecraft Player"""
+        uuid = await self.getMinecraftUUID(user)
+
+        history = await self.REST("https://api.mojang.com/user/profiles/" + uuid["id"] + "/names")
+        names = []
+        for i in range(len(history)):
+            names.append(history[i]["name"])
+            names[i] = names[i].replace("*", "\\*").replace("_", "\\_").replace("~", "\\~")
+
+        embed = discord.Embed(title="Model for "+history[-1]["name"])
+        embed.set_image(url="https://crafatar.com/renders/body/"+uuid["id"])
+        
+        await ctx.send(embed=embed)
 
 
     @commands.command(name="minecraft", aliases=["mc"])
@@ -318,12 +367,14 @@ class APIs(commands.Cog):
             if not uuid:
                 raise commands.CommandError(message="%User not found!")
             history = await self.REST("https://api.mojang.com/user/profiles/" + uuid["id"] + "/names")
+            logging.info(f'{history}')
             names = []
+            date = []
             for i in range(len(history)):
                 names.append(history[i]["name"])
                 names[i] = names[i].replace("*", "\\*").replace("_", "\\_").replace("~", "\\~")
             names.reverse()
-            names[0] += " **[CURRENT]**"
+            names[0] += " **[Current]**"
             names[-1] += " **[Original]**"
             created = await self.getMinecraftAge(user)
             skin = await self.getMinecraftSkinUrl(uuid["id"])

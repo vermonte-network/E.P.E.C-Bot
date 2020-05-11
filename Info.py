@@ -6,8 +6,6 @@ from discord.ext.commands import Bot, BucketType, Cog, Context, command, group
 import typing
 import colorsys
 from paginator import PaginatorSession
-from Lynn import bot
-
 
 class Info(commands.Cog):
     """Info"""
@@ -24,23 +22,23 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         created = guild.created_at
         features = ", ".join(guild.features)
-
+        
         id = guild.id
         owner = guild.owner
         ownerdn = guild.owner.display_name
-
+        
         boostlvl = guild.premium_tier
         boostlen = guild.premium_subscription_count
-
-        # lists of server elements
+       
+        #lists of server elements
         rolelist = guild.roles
         cats = guild.categories
         chans = guild.text_channels
-
-        # Dictionary of flags
+        
+        #Dictionary of flags
         regionFlag = {
             'amsterdam': ":flag_nl: - Amsterdam",
             'brazil': ":flag_br: -  Brazil",
@@ -69,7 +67,8 @@ class Info(commands.Cog):
         }
 
         region = guild.region
-
+        
+        
         # How many of each type of channel?
         roles = len(guild.roles)
         channels = guild.channels
@@ -83,7 +82,7 @@ class Info(commands.Cog):
                 category_channels += 1
             elif type(channel) == VoiceChannel:
                 voice_channels += 1
-
+       
         # How many of each client type status?
         member_count = guild.member_count
         members = guild.members
@@ -104,7 +103,7 @@ class Info(commands.Cog):
         mobilednd = 0
         webdnd = 0
         desktopdnd = 0
-
+        
         for member in members:
             if str(member.status) == "online" or str(member.status) == "idle" or str(member.status) == "dnd":
                 available += 1
@@ -116,17 +115,14 @@ class Info(commands.Cog):
                 idle += 1
             elif str(member.status) == "dnd":
                 dnd += 1
-
+        
         for member in members:
-            if str(member.mobile_status) == "online" or str(member.mobile_status) == "dnd" or str(
-                    member.mobile_status) == "idle":
-                mobile += 1
-            if str(member.web_status) == "online" or str(member.web_status) == "dnd" or str(
-                    member.web_status) == "idle":
-                web += 1
-            if str(member.desktop_status) == "online" or str(member.desktop_status) == "dnd" or str(
-                    member.desktop_status) == "idle":
-                desktop += 1
+            if str(member.mobile_status) == "online" or str(member.mobile_status) == "dnd" or str(member.mobile_status) == "idle":
+               mobile += 1
+            if str(member.web_status) == "online" or str(member.web_status) == "dnd" or str(member.web_status) == "idle":
+               web += 1
+            if str(member.desktop_status) == "online" or str(member.desktop_status) == "dnd" or str(member.desktop_status) == "idle":
+               desktop += 1
             if str(member.mobile_status) == "online":
                 mobileonline += 1
             if str(member.web_status) == "online":
@@ -151,7 +147,7 @@ class Info(commands.Cog):
         embed.add_field(name=":date: Guild Created On", value=created.strftime("%A %d %B %Y %H:%M"))
         embed.add_field(name=":bust_in_silhouette: Owner", value=str(owner) + " aka " + str(ownerdn))
         embed.add_field(name=":telephone_receiver:  Voice Region", value=" ".join([regionFlag[n] for n in region]))
-        # embed.add_field(name=":telephone_receiver:  Voice Region", value=region)
+        #embed.add_field(name=":telephone_receiver:  Voice Region", value=region)
         embed.add_field(name="Nitro Level", value=str(boostlvl) + "/" + str(3))
         embed.add_field(name="# of current boosts", value=str(boostlen) + "/" + str(30))
         if boostlen > 2:
@@ -160,7 +156,7 @@ class Info(commands.Cog):
             embed.add_field(name=".. needed for lvl 1", value=str(2 - boostlen))
         if boostlen > 15:
             embed.add_field(name=".. needed for lvl 2", value="Already unlocked")
-        else:
+        else:    
             embed.add_field(name=".. needed for lvl 2", value=str(15 - boostlen))
         if boostlen > 30:
             embed.add_field(name=".. needed for lvl 3", value="Already unlocked")
@@ -181,26 +177,25 @@ class Info(commands.Cog):
         embed.add_field(name=":computer: Members using the Desktop App", value=str(desktop) + " total\n" + str(desktoponline) + " online\n" + str(desktopidle) + " idle\n" + str(desktopdnd) + " busy")
         embed.add_field(name="Members using the Browser App", value=str(web) + " total\n" + str(webonline) + " online\n" + str(webidle) + " idle\n" + str(webdnd) + " busy")
         embed.add_field(name=":iphone: Members using the Mobile App", value=str(mobile) + " total\n" + str(mobileonline) + " online\n" + str(mobileidle) + " idle\n" + str(mobilednd) + " busy")
-        embed.add_field(name="Features", value=features)
         embed.set_thumbnail(url=guild.icon_url)
-
+        
         if boostlen > 30:
             embed.set_footer(text="Max Level reached", icon_url="")
         else:
             embed.set_footer(text=str(30 - boostlen) + " boosts to go for max boost level", icon_url="")
-
+                   
         await ctx.send(embed=embed)
-
+        
     @commands.command(name="textchannelinfo", aliases=['tci'])
     async def text_channel_info(self, ctx: Context, channel_id: int = None) -> None:
-        """Returns info about a channel."""
+        """Returns info about a channel."""   
         if channel_id is not None and await self.bot.is_owner(ctx.author):
             channel = self.bot.get_channel(channel_id)
             if channel is None:
                 return await ctx.send(f'Invalid Channel ID given.')
         else:
             channel = ctx.channel
-
+         
         name = channel.name
         created = channel.created_at
         id = channel.id
@@ -211,8 +206,8 @@ class Info(commands.Cog):
         type = channel.type
         nsfw = channel.is_nsfw()
         croles = channel.changed_roles
-
-        embed = discord.Embed(title=channel.name + "'s Information", colour=Colour.blurple())
+    
+        embed = discord.Embed(title=channel.name + "'s Information" ,colour=Colour.blurple())
         embed.add_field(name="Created", value=created)
         embed.add_field(name="Name", value=name)
         embed.add_field(name="ID", value=id)
@@ -222,20 +217,20 @@ class Info(commands.Cog):
         embed.add_field(name="Position", value=pos)
         embed.add_field(name="Channel Type", value=type)
         embed.add_field(name="is NSFW?", value=nsfw)
-        embed.add_field(name="Changed Roles", value=croles)
-
+        embed.add_field(name="Changed Roles", value=croles) 
+                
         await ctx.send(embed=embed)
-
+        
     @commands.command(name="voicechannelinfo", aliases=['vci'])
     async def voice_channel_info(self, ctx: Context, channel_id: int = None) -> None:
-        """Returns info about a channel."""
+        """Returns info about a channel."""   
         if channel_id is not None:
             channel = self.bot.get_channel(channel_id)
             if channel is None:
                 return await ctx.send(f'Invalid Channel ID given.')
         else:
             channel = ctx.channel
-
+        
         name = channel.name
         created = channel.created_at
         id = channel.id
@@ -246,8 +241,8 @@ class Info(commands.Cog):
         croles = channel.changed_roles
         ulimit = channel.user_limit
         bitrate = channel.bitrate
-
-        embed = discord.Embed(title=channel.name + "'s Information", colour=Colour.blurple())
+    
+        embed = discord.Embed(title=channel.name + "'s Information" ,colour=Colour.blurple())
         embed.add_field(name="Created", value=created)
         embed.add_field(name="Name", value=name)
         embed.add_field(name="ID", value=id)
@@ -257,10 +252,10 @@ class Info(commands.Cog):
         embed.add_field(name="User Limit", value=ulimit)
         embed.add_field(name="Bitrate", value=bitrate)
         embed.add_field(name="Channel Type", value=type)
-        embed.add_field(name="Changed Roles", value=croles)
-
+        embed.add_field(name="Changed Roles", value=croles) 
+        
         await ctx.send(embed=embed)
-
+    
     @commands.command(name="userinfo", aliases=['ui', 'clientinfo'])
     async def user_info(self, ctx: Context, *, user_id: int = None) -> None:
         """Returns info about a user."""
@@ -270,37 +265,14 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid User ID given.')
         else:
             user = user
-
+        
         created = user.created_at
         name = user.name
         avatar = user.avatar_url
         id = user.id
         discrim = user.discriminator
         bot = user.bot
-
-        embed = discord.Embed(title=str(user.name) + "'s information", colour=Colour.blurple())
-        embed.add_field(name="Account made on", value=created.strftime("%A %d %B %Y %H:%M"))
-        embed.add_field(name="Username", value=name)
-        embed.add_field(name="Users Discriminator", value=discrim)
-        embed.add_field(name="Users ID", value=id)
-        embed.add_field(name="Tag", value=str(name) + "#" + str(discrim))
-        embed.add_field(name="Bot?", value=bot)
-        embed.set_thumbnail(url=user.avatar_url)
-
-        await ctx.send(embed=embed)
-
-    @commands.command(name="botownerinfo", aliases=['oi', 'boi', 'ownerinfo'])
-    async def owner_info(self, ctx: Context) -> None:
-        """Returns info about the bots owner."""
-        user = self.bot.get_user(596773775404564481)
-
-        created = user.created_at
-        name = user.name
-        avatar = user.avatar_url
-        id = user.id
-        discrim = user.discriminator
-        bot = user.bot
-
+        
         embed = discord.Embed(title=str(user.name) + "'s information", colour=Colour.blurple())
         embed.add_field(name="Account made on", value=created.strftime("%A %d %B %Y %H:%M"))
         embed.add_field(name="Username", value=name)
@@ -315,7 +287,7 @@ class Info(commands.Cog):
     @commands.command(name="botinfo", aliases=['bi', 'info'])
     async def botinfo(self, ctx: Context) -> None:
         """Returns info about the bot."""
-
+        
         created = ctx.me.created_at
         name = ctx.me.name
         avatar = ctx.me.avatar_url
@@ -323,15 +295,15 @@ class Info(commands.Cog):
         discrim = ctx.me.discriminator
         guildcount = len(self.bot.guilds)
         latency = self.bot.latency
-
+        
         embed = discord.Embed(title="Bots Information", colour=Colour.blurple())
-        embed.add_field(name="Bots Name", value=name)
+        embed.add_field(name="Bots Name", value=name)        
         embed.add_field(name="Bots Discriminator", value=discrim)
         embed.add_field(name="Bots ID", value=id)
         embed.add_field(name="Number of guilds bot is in", value=guildcount)
         embed.add_field(name="Bot created on", value=created.strftime("%A %d %B %Y %H:%M"))
         embed.add_field(name="Latency", value=latency)
-
+        
         embed.set_thumbnail(url=ctx.me.avatar_url)
 
         await ctx.send(embed=embed)
@@ -345,7 +317,7 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid User ID given.')
         else:
             user = user
-
+                   
         roles = ""
         activities = ""
         joined = user.joined_at
@@ -361,11 +333,11 @@ class Info(commands.Cog):
         web = user.is_on_web()
         mobile = user.is_on_mobile()
         top = user.top_role
-
-        # List of users roles
+        
+        #List of users roles
         for i in range(len(user.roles)):
             roles += str(user.roles[i].mention) + ", "
-
+                
         embed = discord.Embed(title=str(user.display_name) + "'s Information", colour=Colour.blurple())
         embed.add_field(name="Member joined on", value=joined.strftime("%A %d %B %Y %H:%M"))
         embed.add_field(name="Members Nickname", value=nick)
@@ -385,7 +357,7 @@ class Info(commands.Cog):
         embed.set_thumbnail(url=user.avatar_url)
 
         await ctx.send(embed=embed)
-
+        
     @commands.command(name="avatar")
     async def avatar(self, ctx: Context, *, user: discord.Member) -> None:
         if user is not None and await self.bot.is_owner(ctx.author):
@@ -394,19 +366,19 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid User ID given.')
         else:
             user = user
-
+        
         """Returns a users avatar"""
-
+        
         avatar = user.avatar_url
-
+        
         await ctx.send(avatar)
-
+        
     @commands.command(name="roleperms")
     async def role_perm_info(self, ctx: Context, *, role: discord.Role) -> None:
         """Returns info about a members permissions"""
-
+        
         admin = role.permissions.administrator
-
+        
         embed = Embed(
             colour=Colour.blurple(),
             description=f"""
@@ -417,13 +389,13 @@ class Info(commands.Cog):
                 * This perm overrides all below it making everything else automatically true
             """
         )
-
+        
         await ctx.send(embed=embed)
 
     @commands.command(name="perms")
     async def perm_info(self, ctx: Context, *, user: Member) -> None:
         """Returns info about a members permissions"""
-
+        
         perms = ""
         if user.guild_permissions.administrator:
             perms += "Administrator, "
@@ -486,14 +458,14 @@ class Info(commands.Cog):
             perms = "None"
         else:
             perms = perms.strip(", ")
-
-        embed = discord.Embed(title="Permissions for " + user.nick)
+        
+        embed = discord.Embed(title="Permissions for "+user.nick)
         embed.add_field(name="Permissions", value=perms)
 
         embed.set_thumbnail(url=user.avatar_url)
 
         await ctx.send(embed=embed)
-
+    
     @commands.command(name="roles")
     async def roles_info(self, ctx: Context, *, guild_id: int = None) -> None:
         """Returns a list of all roles and their corresponding IDs."""
@@ -503,19 +475,20 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+            
         # Sort the roles by the order as shown in the client's Roles UI
         roles = sorted(guild.roles, key=lambda role: role.position, reverse=True)
-        # roles = [role for role in roles if role.name != "@everyone"]
+        #roles = [role for role in roles if role.name != "@everyone"]        
 
         # Build a string
         role_string = ""
         for role in roles:
             role_string += f"{role.position} - {role.mention}\n"
-
+       
         embed = discord.Embed(title="Roles", colour=Colour.blurple(), description=f"""{role_string}""")
-
-        await ctx.send(embed=embed)
+        
+       
+        await ctx.send(embed=embed)        
 
     @commands.command(name="joinlist")
     async def join_list(self, ctx, *, guild_id: int = None) -> None:
@@ -526,22 +499,22 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
-
+                
         user_string = ""
         for user in users:
             joined = user.joined_at
             user_string += f"""{user.display_name} - {user.top_role} - {joined.strftime("%A %d %B %Y %H:%M")}\n"""
-
+        
         f = open("export/joins.txt", "w")
         f.write(user_string)
-        f.close()
-
+        f.close()     
+        
         file = discord.File("export/joins.txt")
-
+        
         await ctx.send(str("Dumped data to file"), files=[file])
-
+      
     @commands.command(name="botjoinlist")
     async def botjoin_list(self, ctx, *, guild_id: int = None) -> None:
         """Retrieve List of Bots by join date"""
@@ -551,23 +524,23 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
-        users = [user for user in users if user.bot]
-
+        users = [user for user in users if user.bot]       
+        
         user_string = ""
         for user in users:
             joined = user.joined_at
             user_string += f"""{user.display_name} - {user.top_role} - {joined.strftime("%A %d %B %Y %H:%M")}\n"""
-
+        
         f = open("export/botjoins.txt", "w")
         f.write(user_string)
-        f.close()
-
+        f.close()     
+        
         file = discord.File("export/botjoins.txt")
-
+        
         await ctx.send(str("Dumped data to file"), files=[file])
-
+       
     @commands.command(name="nopclist")
     async def nd_status_list(self, ctx, *, guild_id: int = None) -> None:
         """Retrieve list of Members not on the Desktop App"""
@@ -577,7 +550,7 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
         users = [user for user in users if not user.is_on_pc()]
 
@@ -586,13 +559,13 @@ class Info(commands.Cog):
             user_string += f"""{user.name} - {user.display_name}\n"""
 
         f = open("export/nopclist.txt", "w")
-        f.write("Users not on PC\n\n" + user_string)
+        f.write("Users not on PC\n\n"+user_string)
         f.close()
 
         file = discord.File("export/nopclist.txt")
 
         await ctx.send(str("Dumped Data to file"), files=[file])
-
+        
     @commands.command(name="pclist")
     async def d_status_list(self, ctx, *, guild_id: int = None) -> None:
         """Retrieve list of Members on the Desktop App"""
@@ -602,7 +575,7 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
         users = [user for user in users if user.is_on_pc()]
 
@@ -611,14 +584,14 @@ class Info(commands.Cog):
             user_string += f"""{user.name} - {user.display_name}\n"""
 
         f = open("export/pclist.txt", "w")
-        f.write("Users on PC\n\n" + user_string)
+        f.write("Users on PC\n\n"+user_string)
         f.close()
 
         file = discord.File("export/pclist.txt")
 
         await ctx.send(str("Dumped Data to file"), files=[file])
-
-    @commands.command(name="nonmobilelist")
+    
+    @commands.command(name="nonmobilelist") 
     async def nm_status_list(self, ctx, *, guild_id: int = None) -> None:
         """Retrieve list of Members not on the iOS/Android App"""
         if guild_id is not None and await self.bot.is_owner(ctx.author):
@@ -627,7 +600,7 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
         users = [user for user in users if not user.is_on_mobile()]
 
@@ -636,14 +609,14 @@ class Info(commands.Cog):
             user_string += f"""{user.name} - {user.display_name}\n"""
 
         f = open("export/nomobilelist.txt", "w")
-        f.write("Users not on iOS/Android\n\n" + user_string)
+        f.write("Users not on iOS/Android\n\n"+user_string)
         f.close()
 
         file = discord.File("export/nomobilelist.txt")
 
-        await ctx.send(str("Dumped Data to file"), files=[file])
-
-    @commands.command(name="mobilelist")
+        await ctx.send(str("Dumped Data to file"), files=[file])   
+    
+    @commands.command(name="mobilelist") 
     async def m_status_list(self, ctx, *, guild_id: int = None) -> None:
         """Retrieve list of Members on the iOS/Android App"""
         if guild_id is not None and await self.bot.is_owner(ctx.author):
@@ -652,7 +625,7 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
         users = [user for user in users if user.is_on_mobile()]
 
@@ -661,7 +634,7 @@ class Info(commands.Cog):
             user_string += f"""{user.name} - {user.display_name}\n"""
 
         f = open("export/mobilelist.txt", "w")
-        f.write("Users on iOS/Android\n\n" + user_string)
+        f.write("Users on iOS/Android\n\n"+user_string)
         f.close()
 
         file = discord.File("export/mobilelist.txt")
@@ -677,7 +650,7 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
         users = [user for user in users if not user.is_on_web()]
 
@@ -686,7 +659,7 @@ class Info(commands.Cog):
             user_string += f"""{user.name} - {user.display_name}\n"""
 
         f = open("export/noweblist.txt", "w")
-        f.write("Users not on web-browser/not bots\n\n" + user_string)
+        f.write("Users not on web-browser/not bots\n\n"+user_string)
         f.close()
 
         file = discord.File("export/noweblist.txt")
@@ -702,7 +675,7 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
         users = [user for user in users if user.is_on_web()]
 
@@ -711,7 +684,7 @@ class Info(commands.Cog):
             user_string += f"""{user.name} - {user.display_name}\n"""
 
         f = open("export/weblist.txt", "w")
-        f.write("Users on web-browser/bots\n\n" + user_string)
+        f.write("Users on web-browser/bots\n\n"+user_string)
         f.close()
 
         file = discord.File("export/weblist.txt")
@@ -727,23 +700,24 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         users = sorted(guild.members, key=lambda member: member.joined_at, reverse=False)
-        users = [user for user in users if not user.bot]
-
+        users = [user for user in users if not user.bot]       
+                
         user_string = ""
         for user in users:
             joined = user.joined_at
             user_string += f"""{user.display_name} - {user.top_role} - {joined.strftime("%A %d %B %Y %H:%M")}\n"""
-
+        
         f = open("export/userjoins.txt", "w")
         f.write(user_string)
-        f.close()
-
+        f.close()     
+        
         file = discord.File("export/userjoins.txt")
-
+        
         await ctx.send(str("Dumped data to file"), files=[file])
-
+          
+        
     @commands.command(name="channellist")
     async def channel_list(self, ctx: Context, *, guild_id: int = None) -> None:
         """Retrieve List of channels"""
@@ -753,22 +727,23 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
-        channels = sorted(guild.channels, key=lambda channel: channel.position, reverse=False)
-
+        
+        channels = sorted(guild.channels, key=lambda channel: channel.position, reverse=False)     
+                                
         channel_string = ""
         for channel in channels:
             position = channel.position
             channel_string += f"""{channel.name} - {position}\n"""
-
+        
         f = open("export/chanlist.txt", "w")
         f.write(channel_string)
-        f.close()
-
+        f.close()     
+        
         file = discord.File("export/chanlist.txt")
-
+        
         await ctx.send(str("Dumped data to file"), files=[file])
-
+          
+        
     @commands.command(name="memberroles")
     async def user_roles_info(self, ctx: Context, *, user_id: int = None) -> None:
         """Returns a list of a members roles and their corresponding IDs."""
@@ -778,20 +753,20 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid User ID given.')
         else:
             user = user
-
+       
         # Sort the roles by the order as shown in the client's Roles UI
         roles = sorted(user.roles, key=lambda role: role.position, reverse=True)
-        # roles = [role for role in roles if role.name != "@everyone"]
+        #roles = [role for role in roles if role.name != "@everyone"]        
 
         # Build a string
         role_string = ""
         for role in roles:
             role_string += f"{role.position} - {role.mention}\n"
-
-        embed = discord.Embed(title="Roles for " + user.display_name, colour=Colour.blurple(),
-                              description=f"""{role_string}""")
-
-        await ctx.send(embed=embed)
+       
+        embed = discord.Embed(title="Roles for " + user.display_name, colour=Colour.blurple(), description=f"""{role_string}""")
+        
+       
+        await ctx.send(embed=embed)     
 
     @commands.command(name="roleinfo", aliases=['ri'])
     async def roleinfo(self, ctx, *, rolename, guild_id: int = None):
@@ -802,7 +777,7 @@ class Info(commands.Cog):
                 return await ctx.send(f'Invalid Guild ID given.')
         else:
             guild = ctx.guild
-
+        
         try:
             role = discord.utils.get(guild.roles, name=rolename)
         except:
@@ -892,19 +867,6 @@ class Info(commands.Cog):
 
         p_session = PaginatorSession(ctx, footer=f'Created At: {thing}', pages=pages)
         await p_session.run()
-
-
-    @commands.command(name="membercount")
-    async def roleinfo(self, ctx: Context):
-        """Returns Number of members in server"""
-    
-        membed = discord.Embed(title="Member Count")
-        membed.add_field(name="Total Members", value=len(ctx.guild.members))
-        membed.add_field(name="Humans", value=len([member for member in ctx.guild.members if not member.bot]))
-        membed.add_field(name="Bots", value=len([member for member in ctx.guild.members if member.bot]))
-
-
-        await ctx.send(embed=membed)
 
 
 def setup(bot):
